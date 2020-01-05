@@ -20,16 +20,16 @@ export class VideoPlayer {
     if (!this.initialized || this.videoSource.updating) return;
 
     //console.log(this._lastTimes, this.element.currentTime);
-    if (this.element.currentTime !== 0 &&
-      (this._stalledPlayerCounter.value === 0 || this._stalledPlayerCounter.time === this.element.currentTime)) {
-      this._stalledPlayerCounter.time = this.element.currentTime;
-      this._stalledPlayerCounter.value++;
-      if (this._stalledPlayerCounter.value > 3) {
-        this._stalledPlayerCounter = { time: 0, value: 0 };
-        this._reinit(this._initSegment);
-        return;
-      }
-    } else this._stalledPlayerCounter = { time: 0, value: 0 };
+    // if (this.element.currentTime !== 0 &&
+    //   (this._stalledPlayerCounter.value === 0 || this._stalledPlayerCounter.time === this.element.currentTime)) {
+    //   this._stalledPlayerCounter.time = this.element.currentTime;
+    //   this._stalledPlayerCounter.value++;
+    //   if (this._stalledPlayerCounter.value > 3) {
+    //     this._stalledPlayerCounter = { time: 0, value: 0 };
+    //     this._reinit(this._initSegment);
+    //     return;
+    //   }
+    // } else this._stalledPlayerCounter = { time: 0, value: 0 };
 
     if (this._lastSegment) {
       this._appendBuffer(this._lastSegment);
@@ -62,7 +62,7 @@ export class VideoPlayer {
     this.mediaSource = new MediaSource();
     this.mediaSource.addEventListener('sourceopen', () => {
       console.log('source open');
-      this.videoSource = this.mediaSource.addSourceBuffer('video/mp4; codecs="avc1.42C020"');
+      this.videoSource = this.mediaSource.addSourceBuffer('video/mp4; codecs="avc1.42C01F"');
       this.videoSource.mode = 'sequence';
       this._submit = this._submit.bind(this);
       this.videoSource.addEventListener('update', this._submit, { capture: true, passive: true, once: false });
@@ -134,8 +134,8 @@ export class VideoPlayer {
     if (this.videoSource.buffered.length) {
       const currentTime = this.element.currentTime;
       const bufferEnd = this.element.buffered.end(0);
-      if (currentTime < bufferEnd - LAG_TOLERANCE)
-        this.element.currentTime = bufferEnd - LAG_TOLERANCE;
+      if (currentTime < bufferEnd - (LAG_TOLERANCE * 0))
+        this.element.currentTime = bufferEnd - (LAG_TOLERANCE * 0);
     }
     if (this.videoSource.updating) this._lastSegment = frame;
     else {
