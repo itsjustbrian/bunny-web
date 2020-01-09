@@ -1,30 +1,35 @@
 import { VideoPlayer } from './video.js';
 import { PeerConnection } from './peer_connection.js';
+import RFB from '../node_modules/@novnc/novnc/core/rfb.js';
 
 const IP = '0.0.0.0';
-const PORT = 8080;
+const SOCKET_PORT = 8080;
+const VNC_PORT = 3000;
 
 const playButton = document.getElementById('play-button');
 const videoElement = document.getElementById('vid');
+const vncScreen = document.getElementById('screen');
 
-const videoPlayer = new VideoPlayer(videoElement);
-window.videoPlayer = videoPlayer;
+const rfb = new RFB(vncScreen, `wss://${IP}:${VNC_PORT}`);
 
-const socket = io('http://' + IP + ':' + PORT);
+// const videoPlayer = new VideoPlayer(videoElement);
+// window.videoPlayer = videoPlayer;
 
-const peer = new PeerConnection(SimplePeer, socket, { initiator: false });
-window.peer = peer;
+// const socket = io('http://' + IP + ':' + SOCKET_PORT);
 
-peer.ondata = (data) => videoPlayer.push(data);
+// const peer = new PeerConnection(SimplePeer, socket, { initiator: false });
+// window.peer = peer;
 
-playButton.addEventListener('click', () => {
-  if (peer.connected) socket.emit('start-stream');
-});
+// peer.ondata = (data) => videoPlayer.push(data);
 
-socket.on('connect', () => {
-  peer.connect();
-});
+// playButton.addEventListener('click', () => {
+//   if (peer.connected) socket.emit('start-stream');
+// });
 
-socket.on('disconnect', () => {
-  peer.close();
-});
+// socket.on('connect', () => {
+//   peer.connect();
+// });
+
+// socket.on('disconnect', () => {
+//   peer.close();
+// });
