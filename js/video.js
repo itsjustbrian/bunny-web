@@ -9,6 +9,7 @@ export class VideoPlayer {
     this.videoSource = this.mediaSource = this._lastSegment = this._initSegment = null;
     this.initialized = false;
     this._stalledPlayerCounter = { time: 0, value: 0 }
+    this.queue = [];
   }
 
   _submit() {
@@ -30,19 +31,23 @@ export class VideoPlayer {
     //   }
     // } else this._stalledPlayerCounter = { time: 0, value: 0 };
 
-    if (this._lastSegment) {
-      this._appendBuffer(this._lastSegment);
-      delete this._lastSegment;
-      return;
-    }
+    // if (this._lastSegment) {
+    //   this._appendBuffer(this._lastSegment);
+    //   delete this._lastSegment;
+    //   return;
+    // }
 
-    if (this.element.buffered.length) {
-      const currentTime = this.element.currentTime;
-      const bufferStart = this.element.buffered.start(0);
-      const bufferEnd = this.element.buffered.end(0);
-      if (currentTime - bufferStart > MAX_BUFFER_LENGTH && currentTime < bufferEnd) {
-        this.videoSource.remove(bufferStart, currentTime - BUFFER_REMOVAL_CUSHION);
-      }
+    // if (this.element.buffered.length) {
+    //   const currentTime = this.element.currentTime;
+    //   const bufferStart = this.element.buffered.start(0);
+    //   const bufferEnd = this.element.buffered.end(0);
+    //   if (currentTime - bufferStart > MAX_BUFFER_LENGTH && currentTime < bufferEnd) {
+    //     this.videoSource.remove(bufferStart, currentTime - BUFFER_REMOVAL_CUSHION);
+    //   }
+    // }
+
+    if (this.queue.length) {
+      this._appendBuffer(this.queue.shift());
     }
   }
 
@@ -61,14 +66,14 @@ export class VideoPlayer {
     this.mediaSource = new MediaSource();
     this.mediaSource.addEventListener('sourceopen', () => {
       console.log('source open');
-      this.videoSource = this.mediaSource.addSourceBuffer('video/mp4; codecs="avc1.42C020"');
-      this.videoSource.mode = 'sequence';
+      this.videoSource = this.mediaSource.addSourceBuffer('video/mp4; codecs="avc1.42C020,opus"');
+      //this.videoSource.mode = 'sequence';
       this._submit = this._submit.bind(this);
       this.videoSource.addEventListener('update', this._submit, { capture: true, passive: true, once: false });
-      //this.element.play();
       this.videoSource.appendBuffer(this._initSegment);
+      this.element.play();
       this.initialized = true;
-
+      
       this.element.addEventListener('error', () => {
         console.error(this.element.error.message);
         this._reinit(this._initSegment);
@@ -130,16 +135,19 @@ export class VideoPlayer {
       return;
     }
     if (!this.initialized) return;
-    if (this.videoSource.buffered.length) {
-      const currentTime = this.element.currentTime;
-      const bufferEnd = this.element.buffered.end(0);
-      if (currentTime < bufferEnd - (LAG_TOLERANCE * 0))
-        this.element.currentTime = bufferEnd - (LAG_TOLERANCE * 0);
-    }
-    if (this.videoSource.updating) this._lastSegment = frame;
-    else {
-      delete this._lastSegment;
-      this._appendBuffer(frame);
-    }
+    // if (this.videoSource.buffered.length) {
+    //   const currentTime = this.element.currentTime;
+    //   const bufferEnd = this.element.buffered.end(0);
+    //   if (currentTime < bufferEnd - (LAG_TOLERANCE * 120))
+    //     this.element.currentTime = bufferEnd - (LAG_TOLERANCE * 120);
+    // }
+    // if (this.videoSource.updating) this._lastSegment = frame;
+    // else {
+    //   delete this._lastSegment;
+    //   this._appendBuffer(frame);
+    // }
+
+    this.queue.push(frame);
+    this._submit();
   }
 }
